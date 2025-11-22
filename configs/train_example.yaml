@@ -1,0 +1,57 @@
+model:
+  model_name: gpt2
+  torch_dtype: float32
+  gradient_checkpointing: false
+  use_flash_attention: false
+  max_position_embeddings: 1024
+
+data:
+  train_path: ../data/raw/train.jsonl
+  val_path: ../data/raw/val.jsonl
+  val_split_ratio: 0.0
+  max_seq_length: 128
+  pack_sequences: false
+  text_field: text
+  instruction_field: instruction
+  input_field: input
+  output_field: output
+  chat_template: null
+  num_workers: 0
+
+training:
+  output_dir: outputs/example_run
+  num_epochs: 1
+  train_batch_size: 1
+  eval_batch_size: 1
+  gradient_accumulation_steps: 1
+  learning_rate: 5.0e-5
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  lr_scheduler_type: linear
+  warmup_steps: 0
+  warmup_ratio: 0.0
+  mixed_precision: "no"
+  logging_steps: 1
+  eval_steps: 10
+  save_steps: 1
+  save_total_limit: 2
+  load_best_model_at_end: false
+  metric_for_best_model: eval_loss
+  greater_is_better: false
+
+eval:
+  max_eval_samples: 2
+  max_new_tokens: 32
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 50
+  num_beams: 1
+  save_predictions: true
+  predictions_filename: predictions_example.jsonl
+
+run:
+  seed: 42
+  device: auto
+  deterministic: false
+  experiment_name: example_run
+  tags: []
