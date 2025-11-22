@@ -31,7 +31,7 @@ def _get_autocast_dtype(mixed_precision: str) -> Optional[torch.dtype]:
 
 
 class Trainer:
-    """Simple trainer for causal LM."""
+    """Trainer for causal LM."""
     def __init__(self, cfg: FullConfig) -> None:
         self.cfg = cfg
         self.device = _get_device(cfg)
@@ -134,3 +134,4 @@ class Trainer:
 
         self.model.save_pretrained(ckpt_dir)
         self.tokenizer.save_pretrained(ckpt_dir)
+
