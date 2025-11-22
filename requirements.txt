@@ -1,0 +1,7 @@
+# Core dependencies
+huggingface-hub
+transformers
+accelerate
+datasets
+pyyaml
+torch
