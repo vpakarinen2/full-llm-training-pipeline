@@ -9,10 +9,15 @@ from torch.utils.data import DataLoader
 from typing import Optional
 
 from ai_pipeline.training.optim import create_optimizer, create_scheduler
+from ai_pipeline.training.optim import create_optimizer, create_scheduler
 from ai_pipeline.data.dataset import JsonlTextDataset, collate_fn
 from ai_pipeline.data.tokenization import create_tokenizer
 from ai_pipeline.models.factory import create_causal_lm
+from ai_pipeline.utils.logging import get_logger
 from ai_pipeline.config.schema import FullConfig
+
+
+logger = get_logger(__name__)
 
 
 def _get_device(cfg: FullConfig) -> torch.device:
@@ -31,7 +36,7 @@ def _get_autocast_dtype(mixed_precision: str) -> Optional[torch.dtype]:
 
 
 class Trainer:
-    """Trainer for causal LM."""
+    """Simple trainer for causal LM."""
     def __init__(self, cfg: FullConfig) -> None:
         self.cfg = cfg
         self.device = _get_device(cfg)
@@ -52,6 +57,9 @@ class Trainer:
             num_workers=cfg.data.num_workers,
             collate_fn=lambda batch: collate_fn(batch, self.tokenizer, cfg.data),
         )
+
+        if len(self.train_dataloader) == 0:
+            raise ValueError("Training dataloader is empty; check train_path and dataset contents.")
 
         num_update_steps_per_epoch = math.ceil(
             len(self.train_dataloader) / cfg.training.gradient_accumulation_steps
@@ -116,9 +124,11 @@ class Trainer:
                     self.global_step += 1
 
                     if self.global_step % self.cfg.training.logging_steps == 0:
-                        print(
-                            f"Epoch {epoch} | step {self.global_step} | "
-                            f"loss {loss.item():.4f}",
+                        logger.info(
+                            "Epoch %d | step %d | loss %.4f",
+                            epoch,
+                            self.global_step,
+                            loss.item(),
                         )
 
                     if self.global_step % self.cfg.training.save_steps == 0:
@@ -134,4 +144,3 @@ class Trainer:
 
         self.model.save_pretrained(ckpt_dir)
         self.tokenizer.save_pretrained(ckpt_dir)
-
