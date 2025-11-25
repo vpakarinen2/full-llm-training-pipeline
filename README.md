@@ -59,6 +59,13 @@ python scripts/evaluate.py --config configs/train_example.yaml --checkpoint conf
 - `seed`: random seed for reproducibility
 - `device`: which hardware to run on (`cuda`, `cpu`, or `auto`)
 
+## CLI Arguments
+
+- `--config`: path to YAML/JSON config file (e.g. `configs/train_example.yaml`).
+- `--seed`: set the random seed used for current run.
+- `--device`: select the hardware backend for training (e.g. `cuda`, `cpu`, `auto`).
+- `--checkpoint`: path to model checkpoint directory.
+
 ## Author
 
 Ville Pakarinen (@vpakarinen2)
