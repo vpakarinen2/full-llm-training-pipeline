@@ -13,6 +13,10 @@ from transformers import AutoModelForCausalLM, PreTrainedTokenizerBase
 from ai_pipeline.data.tokenization import create_tokenizer, format_example
 from ai_pipeline.config.schema import DataConfig, EvalConfig, FullConfig
 from ai_pipeline.evaluation.metrics import compute_perplexity
+from ai_pipeline.utils.logging import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def _get_device(cfg: FullConfig) -> torch.device:
@@ -44,15 +48,19 @@ class Evaluator:
         self.cfg = cfg
         self.device = _get_device(cfg)
 
+        logger.info("Initializing evaluator on device: %s", self.device)
+
         self.tokenizer: PreTrainedTokenizerBase = create_tokenizer(cfg.model)
 
         if checkpoint_dir is not None:
+            logger.info("Loading model from checkpoint: %s", checkpoint_dir)
             self.model = AutoModelForCausalLM.from_pretrained(
                 checkpoint_dir,
                 torch_dtype=torch.bfloat16 if cfg.model.torch_dtype.lower() in {"bf16", "bfloat16"} else None,
                 device_map=None,
             )
         else:
+            logger.info("Loading base model: %s", cfg.model.model_name)
             self.model = AutoModelForCausalLM.from_pretrained(
                 cfg.model.model_name,
                 torch_dtype=None,
@@ -77,7 +85,15 @@ class Evaluator:
         if not data_path.is_file():
             raise FileNotFoundError(f"Eval file not found: {data_path}")
 
+        logger.info(
+            "Evaluating on file: %s (max_eval_samples=%s)",
+            data_path,
+            str(eval_cfg.max_eval_samples),
+        )
+
         examples = _load_jsonl(data_path, max_samples=eval_cfg.max_eval_samples)
+
+        logger.info("Loaded %d evaluation examples", len(examples))
 
         total_loss = 0.0
         total_tokens = 0
@@ -122,6 +138,8 @@ class Evaluator:
         out_dir = self.cfg.training.output_dir
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / eval_cfg.predictions_filename
+
+        logger.info("Saving predictions to %s", out_path)
 
         with out_path.open("w", encoding="utf-8") as f:
             for ex in examples:
