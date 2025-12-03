@@ -1,4 +1,3 @@
-# Core dependencies
 huggingface-hub
 transformers
 accelerate
